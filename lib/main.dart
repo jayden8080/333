@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'gradient.dart';
+import 'widget.dart';
 
 
 void main() {
