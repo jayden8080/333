@@ -6,14 +6,14 @@ import '../model/album.dart';
 
 
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class AlbumView extends StatefulWidget {
+  const AlbumView({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<AlbumView> createState() => _AlbumViewState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _AlbumViewState extends State<AlbumView> {
 
   late List<Album> albumList;
 
