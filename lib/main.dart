@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/form_success_page.dart';
-import 'Form_home_page.dart';
-
+import 'package:flutter_app/provider/album_provider.dart';
+import 'package:provider/provider.dart';
+import './view/album_provider_view.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AlbumProvider()),
+        ],
+        child: MyApp(),
+      )
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -14,8 +22,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-
-
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -23,11 +29,9 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/': (context) => MyHomePage(),
-        '/success': (context) => SuccessPage(),
+        '/success': (context) => SuccessPage()
       },
       // home: const MyHomePage(),
     );
   }
 }
-
-
