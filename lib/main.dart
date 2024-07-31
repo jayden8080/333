@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'bottom_navigator_bar.dart';
+import 'package:flutter_app/form_success_page.dart';
+import 'Form_home_page.dart';
 
 
 void main() {
@@ -20,7 +21,11 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(),
+      routes: {
+        '/': (context) => MyHomePage(),
+        '/success': (context) => SuccessPage(),
+      },
+      // home: const MyHomePage(),
     );
   }
 }
