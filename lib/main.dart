@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'scroleview_pagination.dart';
+import 'bottom_navigator_bar.dart';
 
 
 void main() {
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MyHomePage(),
+      home: const MyHomePage(),
     );
   }
 }

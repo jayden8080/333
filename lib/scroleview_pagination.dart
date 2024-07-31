@@ -1,82 +1,137 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
+
   @override
-  _MyHomePage createState() => _MyHomePage();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePage extends State<MyHomePage> {
-  final ScrollController _scrollController = ScrollController();
-  List _data = [];
+class _MyHomePageState extends State<MyHomePage>  {
+
+  final _url = 'https://jsonplaceholder.typicode.com/albums';
   int _page = 1;
-  bool _isLoading = false;
-  bool _hasMoreData = true;
+  final int _limit = 20;
+  bool _hasNextPage = true; // 다음 페이지가 있는지 여부
+  bool _isFirstLoadRunning = false; // 첫번째 페이지 로딩중
+  bool _isLoadMoreRunning = false; // 다음페이지 로딩중
+  List _albumList = [];
+  late ScrollController _controller;
 
   @override
   void initState() {
     super.initState();
-    _fetchData();
-    _scrollController.addListener(() {
-      if (_scrollController.position.extentAfter < 300 && !_isLoading && _hasMoreData) {
-        _fetchData();
-      }
+    initLoad();
+    _controller = ScrollController()..addListener(_nextLoad);
+  }
+
+
+  void initLoad() async {
+    setState(() {
+      _isFirstLoadRunning = true;
+    });
+    try {
+      final res = await http.get(Uri.parse("$_url?_page=$_page&_limit=$_limit"));
+      setState(() {
+        _albumList = jsonDecode(res.body);
+      });
+
+    } catch(e) {
+      print(e.toString());
+    }
+
+    setState(() {
+      _isFirstLoadRunning = false;
     });
   }
 
-  Future<void> _fetchData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    final response = await http.get(Uri.parse('https://jsonplaceholder.typicode.com/albums?_page=$_page&_limit=10'));
-    if (response.statusCode == 200) {
-      List newData = json.decode(response.body);
+  void _nextLoad() async {
+    print("nextLoad");
+    if(_hasNextPage && !_isFirstLoadRunning && !_isLoadMoreRunning
+        && _controller.position.extentAfter < 100) {
       setState(() {
-        _data.addAll(newData);
-        _isLoading = false;
-        if (newData.length < 10) {
-          _hasMoreData = false;
-        } else {
-          _page++;
+        _isLoadMoreRunning = true;
+      });
+      _page += 1;
+      try {
+        final res = await http.get(Uri.parse("$_url?_page=$_page&_limit=$_limit"));
+        final List fetchedAlbums = json.decode(res.body);
+        if(fetchedAlbums.isNotEmpty) {
+          setState(() {
+            _albumList.addAll(fetchedAlbums);
+          });
+        } else { // 데이터가 비어있는 경우
+          setState(() {
+            _hasNextPage = false;
+          });
         }
-      });
-    } else {
+      } catch(e) {
+        print(e.toString());
+      }
+
       setState(() {
-        _isLoading = false;
-        _hasMoreData = false;
+        _isLoadMoreRunning = false;
       });
+
     }
   }
 
+  // 페이지 종료 시 종료해 주는 기능
   @override
   void dispose() {
-    _scrollController.dispose();
     super.dispose();
+    _controller.removeListener(_nextLoad);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Pagination Example'),
-      ),
-      body: _data.isEmpty && _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-        controller: _scrollController,
-        itemCount: _data.length + (_hasMoreData ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == _data.length) {
-            return Center(child: CircularProgressIndicator());
-          }
-          return ListTile(
-            title: Text('Item ${_data[index]['id']}'),
-            subtitle: Text(_data[index]['title']),
-          );
-        },
-      ),
+        appBar: AppBar(
+          title: const Text("test title"),
+        ),
+        body: _isFirstLoadRunning
+            ? const Center(
+          child: CircularProgressIndicator(),
+        )
+            : Column(
+          children: [
+            Expanded(
+                child: ListView.builder(
+                    controller: _controller,
+                    itemCount: _albumList.length,
+                    itemBuilder: (context, index) => Card(
+                      margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                      child: ListTile(
+                        title: Text(_albumList[index]["id"].toString()),
+                        subtitle: Text(_albumList[index]["title"]),
+                      ),
+                    )
+                )
+            ),
+            if (_isLoadMoreRunning == true)
+              Container(
+                  padding: const EdgeInsets.all(30),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  )
+              ),
+            if (_hasNextPage == false)
+              Container(
+                  padding: const EdgeInsets.all(20),
+                  child: const Center(
+                    child: Text(
+                        "No more data to be fetched",
+                        style: TextStyle(
+                            color: Colors.white
+                        )
+                    ),
+                  )
+              )
+          ],
+        )
     );
   }
 }
